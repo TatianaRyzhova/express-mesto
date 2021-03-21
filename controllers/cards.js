@@ -29,8 +29,8 @@ const deleteCard = (req, res) => {
       return res.send(card);
     })
     .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      if (err.kind === 'ObjectId' || err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при улалении карточки' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -42,7 +42,12 @@ const addLike = (req, res) => {
   Card.findByIdAndUpdate(cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true })
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      }
+      return res.send(card);
+    })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
         res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
@@ -57,7 +62,12 @@ const deleteLike = (req, res) => {
   Card.findByIdAndUpdate(cardId,
     { $pull: { likes: req.user._id } },
     { new: true })
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      }
+      return res.send(card);
+    })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
         res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
