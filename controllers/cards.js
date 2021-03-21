@@ -12,7 +12,7 @@ const createCard = (req, res) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -22,10 +22,15 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
   Card.findByIdAndDelete(cardId)
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      }
+      return res.send(card);
+    })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        res.status(400).send({ message: 'Невалидный идентификатор карточки' });
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -40,7 +45,7 @@ const addLike = (req, res) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        res.status(400).send({ message: 'Невалидный идентификатор карточки' });
+        res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -55,7 +60,7 @@ const deleteLike = (req, res) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        res.status(400).send({ message: 'Невалидный идентификатор карточки' });
+        res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
