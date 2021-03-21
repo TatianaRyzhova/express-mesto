@@ -23,6 +23,9 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 app.use(router);
+router.use((req, res) => {
+  res.status(404).send({ message: `Ресурс по адресу ${req.path} не найден` });
+});
 
 app.listen(PORT, () => {
   console.log('App starts');
