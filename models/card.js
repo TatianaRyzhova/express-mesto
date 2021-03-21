@@ -3,13 +3,13 @@ const mongoose = require('mongoose');
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: 2,
+    minlength: [2, 'Имя карточки не может быть меньше двух знаков'],
     maxlength: 30,
-    required: true,
+    required: [true, 'Имя карточки обязательно для заполнения'],
   },
   link: {
     type: String,
-    required: true,
+    required: [true, 'Ссылка обязательна для заполнения'],
   },
   owner: {
     type: mongoose.Types.ObjectId,
