@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const getUsers = (req, res) => {
@@ -24,10 +26,37 @@ const getUserById = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
-  const data = { ...req.body };
-  User.create(data)
-    .then((user) => res.send(user))
+const getCurrentUser = (req, res) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь не найден' });
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.kind === 'ObjectId') {
+        res.status(404).send({ message: 'Пользователь не найден' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
+};
+
+const createUser = (req, res, next) => {
+  // const data = { ...req.body };
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
+      email: req.body.email,
+      password: hash,
+    }))
+    // .then((user) => res.send(user))
+    .then((user) => {
+      res.status(201).send({ data: user.toJSON() });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
@@ -73,10 +102,24 @@ const updateAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.send({ token });
+    })
+    .catch((error) => {
+      res.status(401).send({ message: error.message });
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
+  getCurrentUser,
   createUser,
   updateUser,
   updateAvatar,
+  login,
 };
