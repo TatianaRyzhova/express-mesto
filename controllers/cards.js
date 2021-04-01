@@ -1,79 +1,81 @@
 const Card = require('../models/card');
+const NotFoundError = require('../errors/notFoundError');
+const ValidationError = require('../errors/validationError');
+const ForbiddenError = require('../errors/forbiddenError');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => next(err));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        next(new ValidationError('Переданы некорректные данные при создании карточки'));
       }
+      next(err);
     });
 };
 
-const deleteCard = (req, res) => {
-  const { cardId } = req.params;
-  Card.findByIdAndDelete(cardId)
+const deleteCard = (req, res, next) => {
+  const owner = req.user._id;
+  Card.findById({ _id: req.params.cardId })
+    .orFail(() => new NotFoundError('Карточка с указанным _id не найдена'))
     .then((card) => {
-      if (!card) {
-        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      if (!card.owner.equals(owner)) {
+        next(new ForbiddenError('Вы не можете удалить чужую карточку'));
+      } else {
+        Card.deleteOne(card)
+          .then(() => res.status(204).send({ message: 'Карточка успешно удалена' }));
       }
-      return res.send(card);
     })
     .catch((err) => {
-      if (err.kind === 'ObjectId' || err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при улалении карточки' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'ValidationError' || err.kind === 'ObjectId' || err.name === 'CastError') {
+        next(new ValidationError('_id карточки имеет некорректный формат'));
       }
+      next(err);
     });
 };
 
-const addLike = (req, res) => {
+const addLike = (req, res, next) => {
   const { cardId } = req.params;
   Card.findByIdAndUpdate(cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true })
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+        next(new NotFoundError('Карточка с указанным _id не найдена'));
       }
       return res.send(card);
     })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        next(new ValidationError('Переданы некорректные данные для постановки/снятии лайка'));
       }
+      next(err);
     });
 };
 
-const deleteLike = (req, res) => {
+const deleteLike = (req, res, next) => {
   const { cardId } = req.params;
   Card.findByIdAndUpdate(cardId,
     { $pull: { likes: req.user._id } },
     { new: true })
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
       return res.send(card);
     })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        res.status(400).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        next(new ValidationError('Переданы некорректные данные для постановки/снятии лайка'));
       }
+      next(err);
     });
 };
 
