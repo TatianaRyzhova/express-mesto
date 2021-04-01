@@ -37,12 +37,19 @@ const getCurrentUser = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  if (!email || !password) {
+    next(new ValidationError('email и password обязательны для заполнения'));
+  }
   bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
-      email: req.body.email,
+      name,
+      about,
+      avatar,
+      email,
       password: hash,
     }))
     .then((user) => {
@@ -50,7 +57,7 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные при создании пользователя'));
+        next(new ValidationError(err));
       }
       if (err.code === 11000) {
         next(new ConflictError('Пользователь с таким email уже существует'));

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const router = require('./routes');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
@@ -30,6 +31,8 @@ app.use(router);
 router.use((req, res) => {
   res.status(404).send({ message: `Ресурс по адресу ${req.path} не найден` });
 });
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
