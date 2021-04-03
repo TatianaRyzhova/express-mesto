@@ -15,7 +15,7 @@ const createCard = (req, res, next) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError(err));
+        next(new ValidationError('Переданы некорректные данные при создании карточки'));
       }
       next(err);
     });
@@ -30,7 +30,7 @@ const deleteCard = (req, res, next) => {
         next(new ForbiddenError('Вы не можете удалить чужую карточку'));
       } else {
         Card.deleteOne(card)
-          .then(() => res.status(204).send({ message: 'Карточка успешно удалена' }));
+          .then(() => res.status(200).send({ message: 'Карточка успешно удалена' }));
       }
     })
     .catch((err) => {
