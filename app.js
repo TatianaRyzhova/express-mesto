@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors')
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const router = require('./routes');
@@ -9,6 +10,7 @@ const {
   userCreateValidation,
   loginValidation,
 } = require('./middlewares/validatons');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
@@ -22,7 +24,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 const app = express();
 
+app.use(cors());
+
 app.use(bodyParser.json());
+
+app.use(requestLogger);
 
 app.post('/signin', loginValidation, login);
 app.post('/signup', userCreateValidation, createUser);
@@ -35,6 +41,8 @@ app.use(router);
 router.use((req, res) => {
   res.status(404).send({ message: `Ресурс по адресу ${req.path} не найден` });
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
