@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors')
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const router = require('./routes');
@@ -11,6 +11,7 @@ const {
   loginValidation,
 } = require('./middlewares/validatons');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const NotFoundError = require('./errors/notFoundError');
 
 const { PORT = 3000 } = process.env;
 
@@ -38,8 +39,8 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use(router);
-router.use((req, res) => {
-  res.status(404).send({ message: `Ресурс по адресу ${req.path} не найден` });
+router.use((req, res, next) => {
+  next(new NotFoundError(`Ресурс по адресу ${req.path} не найден`));
 });
 
 app.use(errorLogger);

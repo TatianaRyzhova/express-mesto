@@ -4,6 +4,7 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
 const ValidationError = require('../errors/validationError');
 const ConflictError = require('../errors/conflictError');
+const AuthError = require('../errors/authError');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -97,8 +98,8 @@ const login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch((err) => {
-      next(err);
+    .catch(() => {
+      next(new AuthError('Неправильные почта или пароль'));
     });
 };
 

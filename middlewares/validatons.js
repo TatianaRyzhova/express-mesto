@@ -12,7 +12,10 @@ const userCreateValidation = celebrate({
         'string.min': 'Минимальная длина поля "about" - 2',
         'string.max': 'Максимальная длина поля "about" - 30',
       }),
-    avatar: Joi.string().uri(),
+    avatar: Joi.string()
+      .pattern(
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
+      ),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8)
       .messages({
@@ -44,7 +47,10 @@ const updateAvatarValidation = celebrate({
     authorization: Joi.required(),
   }).unknown(),
   body: Joi.object().keys({
-    avatar: Joi.string().required().uri(),
+    avatar: Joi.string().required()
+      .pattern(
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
+      ),
   }),
 });
 
@@ -53,7 +59,7 @@ const getUserByIdValidation = celebrate({
     authorization: Joi.required(),
   }).unknown(),
   params: Joi.object().keys({
-    userId: Joi.string().required().length(24),
+    userId: Joi.string().required().length(24).hex(),
   }),
 });
 
@@ -74,7 +80,10 @@ const createCardValidation = celebrate({
         'string.min': 'Минимальная длина поля "name" - 2',
         'string.max': 'Максимальная длина поля "name" - 30',
       }),
-    link: Joi.string().required().uri(),
+    link: Joi.string().required()
+      .pattern(
+        /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/,
+      ),
   }),
 });
 
@@ -83,7 +92,7 @@ const cardIdValidation = celebrate({
     authorization: Joi.required(),
   }).unknown(),
   params: Joi.object().keys({
-    cardId: Joi.string().required().length(24),
+    cardId: Joi.string().required().length(24).hex(),
   }),
 });
 
