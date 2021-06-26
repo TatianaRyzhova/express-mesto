@@ -10,6 +10,7 @@ The server provides API for Mesto project which allows:
 * put likes 
 * remove pictures
 * modify user data such as profile picture, name & description
+* implemented logging
 
 Base url is http://api.mesto.tatiana.nomoredomains.club/
 
