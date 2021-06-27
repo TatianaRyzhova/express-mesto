@@ -4,7 +4,7 @@
 
 The server provides API for Mesto project which allows: 
 * register new users
-* auser authorization
+* user authorization
 * get information of the current user
 * add new pictures
 * put likes 
